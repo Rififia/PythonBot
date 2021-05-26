@@ -3,6 +3,7 @@
 import discord
 from discord.ext import commands
 import constants
+import re
 import sys
 import os
 from dotenv import load_dotenv
@@ -58,9 +59,10 @@ async def python(ctx):
     prgm = await bot.wait_for('message', check=check)
     await messagebot.delete(delay=2)
     await ctx.message.delete(delay=2)
+    
     if prgm.content.startswith("```"):
-        prgm.content = prgm.content.replace("```python","")
-        prgm.content = prgm.content.replace("```","")
+        prgm.content = re.replace("/^```(?:py(?:thon)?\s*)?(.*)```$/", "\1", re.I | re.S)
+
     with open("input.py","w") as input_file:
         input_file.write(prgm.content)
 
@@ -80,7 +82,7 @@ async def python(ctx):
         message = await ctx.send(raw_output)
     else:
         with open("retour.txt", "r") as output_file:
-            message = await ctx.send("Your program printed more than 1991 characters.", file=discord.File(output_file, filename=datetime.now().strftime("%d-%b-%Y-%H:%M:%S.txt")))
+            message = await ctx.send("Your program printed too much characters.", file=discord.File(output_file, filename=datetime.now().strftime("%d-%b-%Y-%H:%M:%S.txt")))
 
     await message.add_reaction(constants.emotrash)
 
