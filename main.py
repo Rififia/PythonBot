@@ -67,16 +67,21 @@ async def python(ctx):
     os.system("wandbox-python3 run input.py > retour.txt")
 
     with open("retour.txt", "r") as output_file:
-        retour_txt = output_file.read()
-    if not retour_txt.startswith("signal: Killed"):
-        retour_txt = retour_txt[17:]
+        raw_output = output_file.read()
+
+    if not raw_output.startswith("signal: Killed"):
+        raw_output = raw_output[17:]
     else:
-        retour_txt = "Your program is too slow"
-    try:
-        message = await ctx.send("```python\n"+retour_txt+"```")
-    except discord.errors.HTTPException:
+        raw_output = "Note: Your program was killed (it's either too slow or too greedy in ressources)!\n" + raw_output
+
+    raw_output = "```py\n" + raw_output + "```"
+
+    if len(raw_output) <= 2000:
+        message = await ctx.send(raw_output)
+    else:
         with open("retour.txt", "r") as output_file:
-            message = await ctx.send("```The output is more than 2000 caracters. Please consider shorting it.```", file=discord.File(output_file,filename=datetime.now().strftime("%d %b %Y. %H:%M:%S.txt")))
+            message = await ctx.send("Your program printed more than 1991 characters.", file=discord.File(output_file, filename=datetime.now().strftime("%d-%b-%Y-%H:%M:%S.txt")))
+
     await message.add_reaction(constants.emotrash)
 
 
@@ -91,9 +96,8 @@ async def on_raw_reaction_add(payload):
  
 @bot.event
 async def on_message(ctx):
-
     servernb = str(len(bot.guilds))
-    await bot.change_presence(status=discord.Status.online, activity=discord.Game("serving "+servernb+" servers"))
+    await bot.change_presence(status=discord.Status.online, activity=discord.Game("serving " + servernb + " servers"))
 
 
 
@@ -102,4 +106,3 @@ token = os.getenv('TOKEN')
 
 keep_alive()
 bot.run(token)
-
